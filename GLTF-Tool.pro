@@ -20,12 +20,18 @@ SOURCES += \
     gltfmodel.cpp \
     main.cpp \
     mainwindow.cpp \
+    qhexedit2/src/chunks.cpp \
+    qhexedit2/src/commands.cpp \
+    qhexedit2/src/qhexedit.cpp \
     tinygltf.cpp
 
 HEADERS += \
     abstracttreemodel.h \
     gltfmodel.h \
-    mainwindow.h
+    mainwindow.h \
+    qhexedit2/src/chunks.h \
+    qhexedit2/src/commands.h \
+    qhexedit2/src/qhexedit.h
 
 FORMS += \
     mainwindow.ui

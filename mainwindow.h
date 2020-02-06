@@ -16,8 +16,12 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+private slots:
+    void onItemSelected(const QModelIndex &index, const QModelIndex &prev);
+
 private:
     Ui::MainWindow *ui;
     GLTFModel *model;
 };
+
 #endif // MAINWINDOW_H
