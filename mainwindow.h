@@ -18,6 +18,8 @@ public:
 
 private slots:
     void onItemSelected(const QModelIndex &index, const QModelIndex &prev);
+    void selectItem(GLTFModel::Group group, int index, bool syncTree = true);
+    void selectItemByLink(const QString &link);
 
 private:
     Ui::MainWindow *ui;

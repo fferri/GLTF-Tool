@@ -75,7 +75,7 @@ QVariant GLTFModel::data(const QModelIndex &index, int role) const
         return QString("%1 (%2 items)").arg(groupMeta.key(path[0])).arg(size);
     }
 
-    if(d == 2)
+    if(d == 2 && path[0] != Nodes)
     {
         int size;
         QString name;
@@ -83,22 +83,36 @@ QVariant GLTFModel::data(const QModelIndex &index, int role) const
         return QString("%1: %2").arg(path[1]).arg(name);
     }
 
+    if(d >= 2 && path[0] == Nodes)
+    {
+        int idx = gltf_->scenes[gltf_->defaultScene].nodes[path[1]];
+        for(int i = 2; i < d; i++) idx = gltf_->nodes[idx].children[path[i]];
+        return QString::fromStdString(gltf_->nodes[idx].name);
+    }
+
     return {};
 }
 
 int GLTFModel::rowCount(const QModelIndex &parent) const
 {
-    if(!parent.isValid()) return groupMeta.keyCount(); // top-level items
+    if(!parent.isValid()) return groupMeta.keyCount() - 1; // top-level items (- none)
 
     auto path = indexPath(parent);
     int d = path.size();
 
-    if(d == 1)
+    if(d == 1 && path[0] != Nodes)
     {
         int size;
         QString name;
         gltfCollectionInfo(gltf_, static_cast<GLTFModel::Group>(path[0]), size, -1, name);
         return size;
+    }
+    if(d >= 1 && path[0] == Nodes)
+    {
+        if(d == 1) return gltf_->scenes[gltf_->defaultScene].nodes.size();
+        int idx = gltf_->scenes[gltf_->defaultScene].nodes[path[1]];
+        for(int i = 2; i < d; i++) idx = gltf_->nodes[idx].children[path[i]];
+        return gltf_->nodes[idx].children.size();
     }
     return 0;
 }
@@ -122,4 +136,59 @@ QVariant GLTFModel::headerData(int section, Qt::Orientation orientation, int rol
         if(section == 0) return "Index";
     }
     return {};
+}
+
+QPair<GLTFModel::Group, int> GLTFModel::decodeIndex(const QModelIndex &index) const
+{
+    if(!index.isValid()) return qMakePair(None, -1);
+
+    auto path = indexPath(index);
+    int d = path.size();
+
+    if(d == 0) return qMakePair(None, -1);
+
+    Group g = static_cast<Group>(path[0]);
+    int idx = -1;
+
+    if(d == 2 && g != Nodes)
+    {
+        idx = path[1];
+    }
+    else if(d >= 2 && g == Nodes)
+    {
+        idx = gltf_->scenes[gltf_->defaultScene].nodes[path[1]];
+        for(int i = 2; i < d; i++) idx = gltf_->nodes[idx].children[path[i]];
+    }
+
+    return qMakePair(g, idx);
+}
+
+template<typename T>
+int indexOf(const T &t, const std::vector<T> &v)
+{
+    auto it = std::find(v.begin(), v.end(), t);
+    if(it == v.end()) return -1;
+    return std::distance(v.begin(), it);
+}
+
+QModelIndex GLTFModel::encodeIndex(Group group, int idx) const
+{
+    if(group == Nodes)
+    {
+        QList<int> path;
+        while(1)
+        {
+            int p = nodeParent_[idx];
+            if(p == -1) break;
+            path.push_front(indexOf(idx, gltf_->nodes[p].children));
+            idx = p;
+        }
+        {
+            QModelIndex idx;
+            for(int i = 0; i < path.length(); i++)
+                idx = index(path[i], 0, idx);
+            return idx;
+        }
+    }
+    else return index(idx, 0, index(group, 0));
 }

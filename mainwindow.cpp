@@ -21,6 +21,11 @@ MainWindow::MainWindow(QWidget *parent)
     ui->bufferViewData->setReadOnly(true);
 
     connect(ui->treeView->selectionModel(), &QItemSelectionModel::currentChanged, this, &MainWindow::onItemSelected);
+    connect(ui->nodeMesh, &QLabel::linkActivated, this, &MainWindow::selectItemByLink);
+    connect(ui->nodeCamera, &QLabel::linkActivated, this, &MainWindow::selectItemByLink);
+    connect(ui->accessorBufferView, &QLabel::linkActivated, this, &MainWindow::selectItemByLink);
+    connect(ui->imageBufferView, &QLabel::linkActivated, this, &MainWindow::selectItemByLink);
+    connect(ui->bufferViewBuffer, &QLabel::linkActivated, this, &MainWindow::selectItemByLink);
 }
 
 MainWindow::~MainWindow()
@@ -169,58 +174,146 @@ QString accessorComponentTypeString(int x)
     return "?";
 }
 
+template<typename T>
+QString vec2str(const std::vector<T> &v)
+{
+    QStringList s;
+    for(auto x : v) s << QString::number(x);
+    return s.join(" ");
+}
+
+template<typename T>
+QString mat2str(const std::vector<T> &v, int cols = 4)
+{
+    QStringList s;
+    for(int i = 0; i < v.size(); i += cols)
+    {
+        QStringList t;
+        for(int j = 0; j < cols; j++)
+            t << QString::number(v[i + j]);
+        s << t.join(" ");
+    }
+    return s.join("\n");
+}
+
 void MainWindow::onItemSelected(const QModelIndex &index, const QModelIndex &prev)
 {
-    auto path = model->indexPath(index);
-    if(path.size() == 2)
+    auto p = model->decodeIndex(index);
+    selectItem(p.first, p.second, false);
+}
+
+void MainWindow::selectItem(GLTFModel::Group group, int idx, bool syncTree)
+{
+    if(idx < 0)
     {
-        selectWidget(ui, static_cast<GLTFModel::Group>(path[0]));
-        int i = path[1];
-        switch(path[0])
-        {
-        case GLTFModel::Buffers:
-            {
-                tinygltf::Buffer &buffer = gltf.buffers[path[1]];
-                ui->bufferLabel->setText(QString("Buffer %1 (%2)").arg(i).arg(QString::fromStdString(buffer.name)));
-                ui->bufferData->setData(getBuffer(&gltf, path[1]));
-            }
-            break;
-        case GLTFModel::BufferViews:
-            {
-                tinygltf::BufferView &bufferView = gltf.bufferViews[path[1]];
-                ui->bufferViewLabel->setText(QString("Buffer View %1 (%2)").arg(i).arg(QString::fromStdString(bufferView.name)));
-                ui->bufferViewData->setData(getBufferView(&gltf, path[1]));
-            }
-            break;
-        case GLTFModel::Accessors:
-            {
-                tinygltf::Accessor &accessor = gltf.accessors[path[1]];
-                ui->accessorLabel->setText(QString("Accessor %1 (%2)\nType: %3\nComponent type: %4").arg(i).arg(QString::fromStdString(accessor.name), accessorTypeString(accessor.type), accessorComponentTypeString(accessor.componentType)));
-                QByteArray data = getBufferView(&gltf, accessor.bufferView);
-                setRecordHeaders(ui->accessorData, accessor.type);
-                for(int i = accessor.byteOffset, row = 0; i < data.size(); i += accessor.byteOffset + recordSize(accessor), row++)
-                    addRecord(ui->accessorData, row, data, i, accessor.componentType, accessor.type);
-                QStringList h;
-                for(int i = 0; i < ui->accessorData->rowCount(); i++)
-                    h << QString::number(i);
-                ui->accessorData->setVerticalHeaderLabels(h);
-            }
-            break;
-        case GLTFModel::Images:
-            {
-                tinygltf::Image &image = gltf.images[path[1]];
-                ui->imageLabel->setText(QString("Image %1 (%2)").arg(i).arg(QString::fromStdString(image.name)));
-                //QByteArray data(reinterpret_cast<char*>(image.image.data()), image.image.size());
-                QByteArray data = getBufferView(&gltf, image.bufferView);
-                QImage img = QImage::fromData(data);
-                if(img.isNull()) qDebug() << "image is null" << data;
-                QPixmap pix = QPixmap::fromImage(img);
-                ui->imagePreview->setPixmap(pix);
-                ui->imageScrollAreaContents->resize(img.size());
-            }
-            break;
-        }
+        ui->stackedWidget->setCurrentWidget(ui->defaultPage);
         return;
     }
-    ui->stackedWidget->setCurrentWidget(ui->defaultPage);
+
+    selectWidget(ui, group);
+
+    if(syncTree)
+    {
+        QModelIndex treeIndex = model->encodeIndex(group, idx);
+        ui->treeView->setCurrentIndex(treeIndex);
+    }
+
+    switch(group)
+    {
+    case GLTFModel::Buffers:
+        {
+            tinygltf::Buffer &buffer = gltf.buffers[idx];
+            ui->bufferIndex->setText(QString::number(idx));
+            ui->bufferName->setText(QString::fromStdString(buffer.name));
+            ui->bufferData->setData(getBuffer(&gltf, idx));
+        }
+        break;
+    case GLTFModel::BufferViews:
+        {
+            tinygltf::BufferView &bufferView = gltf.bufferViews[idx];
+            ui->bufferViewIndex->setText(QString::number(idx));
+            ui->bufferViewName->setText(QString::fromStdString(bufferView.name));
+            ui->bufferViewBuffer->setText(bufferView.buffer == -1 ? "None" : QString("<a href='#Buffers=%1'>%1</a>").arg(bufferView.buffer));
+            ui->bufferViewData->setData(getBufferView(&gltf, idx));
+        }
+        break;
+    case GLTFModel::Accessors:
+        {
+            tinygltf::Accessor &accessor = gltf.accessors[idx];
+            ui->accessorIndex->setText(QString::number(idx));
+            ui->accessorName->setText(QString::fromStdString(accessor.name));
+            ui->accessorType->setText(accessorTypeString(accessor.type));
+            ui->accessorComponentType->setText(accessorComponentTypeString(accessor.componentType));
+            ui->accessorBufferView->setText(QString("<a href='#BufferViews=%1'>%1</a>").arg(accessor.bufferView));
+            QByteArray data = getBufferView(&gltf, accessor.bufferView);
+            setRecordHeaders(ui->accessorData, accessor.type);
+            for(int i = accessor.byteOffset, row = 0; i < data.size(); i += accessor.byteOffset + recordSize(accessor), row++)
+                addRecord(ui->accessorData, row, data, i, accessor.componentType, accessor.type);
+            QStringList h;
+            for(int i = 0; i < ui->accessorData->rowCount(); i++)
+                h << QString::number(i);
+            ui->accessorData->setVerticalHeaderLabels(h);
+        }
+        break;
+    case GLTFModel::Images:
+        {
+            tinygltf::Image &image = gltf.images[idx];
+            ui->imageIndex->setText(QString::number(idx));
+            ui->imageName->setText(QString::fromStdString(image.name));
+            ui->imageBufferView->setText(image.bufferView == -1 ? "None" : QString("<a href='#BufferViews=%1'>%1</a>").arg(image.bufferView));
+            QByteArray data = getBufferView(&gltf, image.bufferView);
+            QImage img = QImage::fromData(data);
+            if(img.isNull()) qDebug() << "image is null" << data;
+            QPixmap pix = QPixmap::fromImage(img);
+            ui->imagePreview->setPixmap(pix);
+            ui->imageScrollAreaContents->resize(img.size());
+        }
+        break;
+    case GLTFModel::Nodes:
+        {
+            tinygltf::Node &node = gltf.nodes[idx];
+            ui->nodeIndex->setText(QString::number(idx));
+            ui->nodeName->setText(QString::fromStdString(node.name));
+            ui->nodeTranslation->setText(node.translation.empty() ? "" : vec2str(node.translation));
+            ui->nodeRotation->setText(node.rotation.empty() ? "" : vec2str(node.rotation));
+            ui->nodeScale->setText(node.scale.empty() ? "" : vec2str(node.scale));
+            ui->nodeMatrix->setText(node.matrix.empty() ? "" : mat2str(node.matrix));
+            ui->nodeMesh->setText(node.mesh == -1 ? "None" : QString("<a href='#Meshes=%1'>%1</a>").arg(node.mesh));
+            ui->nodeCamera->setText(node.camera == -1 ? "None" : QString("<a href='#Cameras=%1'>%1</a>").arg(node.camera));
+        }
+        break;
+    case GLTFModel::Meshes:
+        {
+            tinygltf::Mesh &mesh = gltf.meshes[idx];
+            ui->meshIndex->setText(QString::number(idx));
+            ui->meshName->setText(QString::fromStdString(mesh.name));
+        }
+        break;
+    }
 }
+
+void MainWindow::selectItemByLink(const QString &link)
+{
+    QString l(link);
+    if(l[0] == "#") l = l.mid(1);
+    auto y = l.split("=");
+    auto z = y[0];
+    GLTFModel::Group group = GLTFModel::None;
+    if(z == "") group = GLTFModel::None;
+    else if(z == "Accessors") group = GLTFModel::Accessors;
+    else if(z == "Animations") group = GLTFModel::Animations;
+    else if(z == "Buffers") group = GLTFModel::Buffers;
+    else if(z == "BufferViews") group = GLTFModel::BufferViews;
+    else if(z == "Materials") group = GLTFModel::Materials;
+    else if(z == "Meshes") group = GLTFModel::Meshes;
+    else if(z == "Nodes") group = GLTFModel::Nodes;
+    else if(z == "Textures") group = GLTFModel::Textures;
+    else if(z == "Images") group = GLTFModel::Images;
+    else if(z == "Skins") group = GLTFModel::Skins;
+    else if(z == "Samplers") group = GLTFModel::Samplers;
+    else if(z == "Cameras") group = GLTFModel::Cameras;
+    else if(z == "Scenes") group = GLTFModel::Scenes;
+    else if(z == "Lights") group = GLTFModel::Lights;
+    selectItem(group, y[1].toInt());
+}
+

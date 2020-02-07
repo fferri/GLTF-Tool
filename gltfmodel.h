@@ -31,7 +31,8 @@ public:
         Samplers,
         Cameras,
         Scenes,
-        Lights
+        Lights,
+        None = -1
     };
     Q_ENUM(Group)
 
@@ -46,6 +47,8 @@ public:
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
     Qt::ItemFlags flags(const QModelIndex &index) const override;
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
+    QPair<Group, int> decodeIndex(const QModelIndex &index) const;
+    QModelIndex encodeIndex(Group group, int idx) const;
 
 private:
     tinygltf::Model *gltf_;
