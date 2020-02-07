@@ -31,7 +31,8 @@ HEADERS += \
     mainwindow.h \
     qhexedit2/src/chunks.h \
     qhexedit2/src/commands.h \
-    qhexedit2/src/qhexedit.h
+    qhexedit2/src/qhexedit.h \
+    tinygltf/tiny_gltf.h
 
 FORMS += \
     mainwindow.ui
