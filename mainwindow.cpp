@@ -206,6 +206,19 @@ void MainWindow::onItemSelected(const QModelIndex &index, const QModelIndex &pre
                 ui->accessorData->setVerticalHeaderLabels(h);
             }
             break;
+        case GLTFModel::Images:
+            {
+                tinygltf::Image &image = gltf.images[path[1]];
+                ui->imageLabel->setText(QString("Image %1 (%2)").arg(i).arg(QString::fromStdString(image.name)));
+                //QByteArray data(reinterpret_cast<char*>(image.image.data()), image.image.size());
+                QByteArray data = getBufferView(&gltf, image.bufferView);
+                QImage img = QImage::fromData(data);
+                if(img.isNull()) qDebug() << "image is null" << data;
+                QPixmap pix = QPixmap::fromImage(img);
+                ui->imagePreview->setPixmap(pix);
+                ui->imageScrollAreaContents->resize(img.size());
+            }
+            break;
         }
         return;
     }
