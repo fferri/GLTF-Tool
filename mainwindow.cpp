@@ -328,8 +328,10 @@ void MainWindow::selectItem(GLTFModel::Group group, int idx, bool syncTree)
                     QLabel *label = new QLabel(QString("<a href='#Accessors=%1'>%1</a>").arg(p.second));
                     connect(label, &QLabel::linkActivated, this, &MainWindow::selectItemByLink);
                     ui->meshPrimitiveAttributes->setCellWidget(row, 1, label);
-                    auto item = ui->meshPrimitiveAttributes->item(row, 1);
-                    if(item) item->setFlags(Qt::NoItemFlags);
+                    QPalette palette = ui->meshPrimitiveAttributes->palette();
+                    palette.setBrush(QPalette::Highlight, palette.brush(QPalette::Base));
+                    palette.setBrush(QPalette::HighlightedText, palette.brush(QPalette::Text));
+                    ui->meshPrimitiveAttributes->setPalette(palette);
                     row++;
                 }
             }
