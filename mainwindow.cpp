@@ -189,7 +189,7 @@ void MainWindow::onItemSelected(const QModelIndex &index, const QModelIndex &pre
             {
                 tinygltf::BufferView &bufferView = gltf.bufferViews[path[1]];
                 ui->bufferViewLabel->setText(QString("Buffer View %1 (%2)").arg(i).arg(QString::fromStdString(bufferView.name)));
-                ui->bufferData->setData(getBufferView(&gltf, path[1]));
+                ui->bufferViewData->setData(getBufferView(&gltf, path[1]));
             }
             break;
         case GLTFModel::Accessors:
