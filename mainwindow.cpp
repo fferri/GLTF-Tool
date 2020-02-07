@@ -16,6 +16,10 @@ MainWindow::MainWindow(QWidget *parent)
     model->setGLTF(&gltf);
     ui->treeView->setModel(model);
 
+    ui->accessorData->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->bufferData->setReadOnly(true);
+    ui->bufferViewData->setReadOnly(true);
+
     connect(ui->treeView->selectionModel(), &QItemSelectionModel::currentChanged, this, &MainWindow::onItemSelected);
 }
 
