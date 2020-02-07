@@ -38,6 +38,28 @@ GLTFModel::~GLTFModel()
 {
 }
 
+void GLTFModel::setGLTF(tinygltf::Model *gltf)
+{
+     gltf_ = gltf;
+
+     nodeParent_.clear();
+     QList<int> s;
+     for(int node : gltf_->scenes[gltf_->defaultScene].nodes)
+     {
+         nodeParent_[node] = -1;
+         s.append(node);
+     }
+     while(!s.empty())
+     {
+         int node = s.back(); s.pop_back();
+         for(int child : gltf_->nodes[node].children)
+         {
+             nodeParent_[child] = node;
+             s.append(child);
+         }
+     }
+}
+
 QVariant GLTFModel::data(const QModelIndex &index, int role) const
 {
     if(!index.isValid() || role != Qt::DisplayRole) return {};

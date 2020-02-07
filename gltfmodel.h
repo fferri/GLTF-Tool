@@ -39,7 +39,7 @@ public:
     explicit GLTFModel(QObject *parent = nullptr);
     ~GLTFModel();
 
-    void setGLTF(tinygltf::Model *gltf) {gltf_ = gltf;}
+    void setGLTF(tinygltf::Model *gltf);
 
     QVariant data(const QModelIndex &index, int role) const override;
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -49,6 +49,7 @@ public:
 
 private:
     tinygltf::Model *gltf_;
+    QMap<int, int> nodeParent_;
     QMetaEnum groupMeta{QMetaEnum::fromType<Group>()};
 };
 
