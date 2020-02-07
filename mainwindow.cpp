@@ -19,6 +19,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->accessorData->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->bufferData->setReadOnly(true);
     ui->bufferViewData->setReadOnly(true);
+    ui->meshPrimitiveAttributes->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
     connect(ui->treeView->selectionModel(), &QItemSelectionModel::currentChanged, this, &MainWindow::onItemSelected);
     connect(ui->nodeMesh, &QLabel::linkActivated, this, &MainWindow::selectItemByLink);
@@ -26,6 +27,8 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->accessorBufferView, &QLabel::linkActivated, this, &MainWindow::selectItemByLink);
     connect(ui->imageBufferView, &QLabel::linkActivated, this, &MainWindow::selectItemByLink);
     connect(ui->bufferViewBuffer, &QLabel::linkActivated, this, &MainWindow::selectItemByLink);
+    connect(ui->meshPrimitiveMaterial, &QLabel::linkActivated, this, &MainWindow::selectItemByLink);
+    connect(ui->meshPrimitiveIndices, &QLabel::linkActivated, this, &MainWindow::selectItemByLink);
 }
 
 MainWindow::~MainWindow()
@@ -287,6 +290,49 @@ void MainWindow::selectItem(GLTFModel::Group group, int idx, bool syncTree)
             tinygltf::Mesh &mesh = gltf.meshes[idx];
             ui->meshIndex->setText(QString::number(idx));
             ui->meshName->setText(QString::fromStdString(mesh.name));
+            if(mesh.primitives.empty())
+            {
+                ui->meshStackedWidget->setCurrentWidget(ui->meshPageOverview);
+                ui->meshPrimitives->setText(QString::number(mesh.primitives.size()));
+            }
+            else
+            {
+                ui->meshStackedWidget->setCurrentWidget(ui->meshPagePrimitive);
+                int subIdx = 0;
+                tinygltf::Primitive &primitive = mesh.primitives[subIdx];
+                ui->meshPrimitiveIndex->setText(QString::number(subIdx));
+                ui->meshPrimitiveMaterial->setText(primitive.material == -1 ? "None" : QString("<a href='#Materials=%1'>%1</a>").arg(primitive.material));
+                ui->meshPrimitiveIndices->setText(primitive.indices == -1 ? "None" : QString("<a href='#Accessors=%1'>%1</a>").arg(primitive.indices));
+                ui->meshPrimitiveMode->setText(QString::number(primitive.mode));
+                ui->meshPrimitiveAttributes->setRowCount(primitive.attributes.size());
+                ui->meshPrimitiveAttributes->setColumnCount(2);
+                int row = 0;
+                for(const auto &p : primitive.attributes)
+                {
+                    QTableWidgetItem *itemKey = ui->meshPrimitiveAttributes->item(row, 0);
+                    if(!itemKey)
+                    {
+                        itemKey = new QTableWidgetItem;
+                        ui->meshPrimitiveAttributes->setItem(row, 0, itemKey);
+                    }
+                    itemKey->setText(QString::fromStdString(p.first));
+                    /*
+                    QTableWidgetItem *itemValue = ui->meshPrimitiveAttributes->item(row, 1);
+                    if(!itemValue)
+                    {
+                        itemValue = new QTableWidgetItem;
+                        ui->meshPrimitiveAttributes->setItem(row, 1, itemValue);
+                    }
+                    itemValue->setText(QString("<a href='#Accessors=%1'>%1</a>").arg(p.second));
+                    */
+                    QLabel *label = new QLabel(QString("<a href='#Accessors=%1'>%1</a>").arg(p.second));
+                    connect(label, &QLabel::linkActivated, this, &MainWindow::selectItemByLink);
+                    ui->meshPrimitiveAttributes->setCellWidget(row, 1, label);
+                    auto item = ui->meshPrimitiveAttributes->item(row, 1);
+                    if(item) item->setFlags(Qt::NoItemFlags);
+                    row++;
+                }
+            }
         }
         break;
     }
