@@ -17,6 +17,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     abstracttreemodel.cpp \
+    gltfinfo.cpp \
     gltfmodel.cpp \
     main.cpp \
     mainwindow.cpp \
@@ -27,6 +28,7 @@ SOURCES += \
 
 HEADERS += \
     abstracttreemodel.h \
+    gltfinfo.h \
     gltfmodel.h \
     mainwindow.h \
     qhexedit2/src/chunks.h \
