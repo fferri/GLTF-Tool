@@ -15,7 +15,7 @@ public:
     explicit PageBuffer(MainWindow *mainWindow);
     ~PageBuffer();
 
-    void setData(const tinygltf::Model &model, int index, int subIndex = -1);
+    void setData(const tinygltf::Model &model, int index);
 
 private:
     Ui::PageBuffer *ui;

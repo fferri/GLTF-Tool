@@ -18,7 +18,7 @@ PageAccessor::~PageAccessor()
     delete ui;
 }
 
-void PageAccessor::setData(const tinygltf::Model &model, int index, int subIndex)
+void PageAccessor::setData(const tinygltf::Model &model, int index)
 {
     const tinygltf::Accessor &accessor = model.accessors[index];
     ui->index->setText(QString::number(index));

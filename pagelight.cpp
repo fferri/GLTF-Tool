@@ -16,7 +16,7 @@ PageLight::~PageLight()
     delete ui;
 }
 
-void PageLight::setData(const tinygltf::Model &model, int index, int subIndex)
+void PageLight::setData(const tinygltf::Model &model, int index)
 {
 
 }

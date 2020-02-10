@@ -17,7 +17,7 @@ PageImage::~PageImage()
     delete ui;
 }
 
-void PageImage::setData(const tinygltf::Model &model, int index, int subIndex)
+void PageImage::setData(const tinygltf::Model &model, int index)
 {
     const tinygltf::Image &image = model.images[index];
     ui->index->setText(QString::number(index));

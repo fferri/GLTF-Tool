@@ -17,7 +17,7 @@ PageBuffer::~PageBuffer()
     delete ui;
 }
 
-void PageBuffer::setData(const tinygltf::Model &model, int index, int subIndex)
+void PageBuffer::setData(const tinygltf::Model &model, int index)
 {
     const tinygltf::Buffer &buffer = model.buffers[index];
     ui->index->setText(QString::number(index));

@@ -16,7 +16,7 @@ PageSampler::~PageSampler()
     delete ui;
 }
 
-void PageSampler::setData(const tinygltf::Model &model, int index, int subIndex)
+void PageSampler::setData(const tinygltf::Model &model, int index)
 {
 
 }

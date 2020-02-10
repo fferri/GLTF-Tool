@@ -16,7 +16,7 @@ PageScene::~PageScene()
     delete ui;
 }
 
-void PageScene::setData(const tinygltf::Model &model, int index, int subIndex)
+void PageScene::setData(const tinygltf::Model &model, int index)
 {
 
 }

@@ -16,7 +16,7 @@ PageCamera::~PageCamera()
     delete ui;
 }
 
-void PageCamera::setData(const tinygltf::Model &model, int index, int subIndex)
+void PageCamera::setData(const tinygltf::Model &model, int index)
 {
 
 }

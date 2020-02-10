@@ -16,7 +16,7 @@ PageTexture::~PageTexture()
     delete ui;
 }
 
-void PageTexture::setData(const tinygltf::Model &model, int index, int subIndex)
+void PageTexture::setData(const tinygltf::Model &model, int index)
 {
 
 }

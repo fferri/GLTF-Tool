@@ -16,7 +16,7 @@ PageSkin::~PageSkin()
     delete ui;
 }
 
-void PageSkin::setData(const tinygltf::Model &model, int index, int subIndex)
+void PageSkin::setData(const tinygltf::Model &model, int index)
 {
 
 }

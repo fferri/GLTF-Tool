@@ -90,11 +90,6 @@ QVariant GLTFModel::data(const QModelIndex &index, int role) const
         return QString::fromStdString(gltf_->nodes[idx].name);
     }
 
-    if(d == 3 && path[0] == Meshes)
-    {
-        return QString("Primitive %1.%2").arg(path[1]).arg(path[2]);
-    }
-
     return {};
 }
 
@@ -118,10 +113,6 @@ int GLTFModel::rowCount(const QModelIndex &parent) const
         int idx = gltf_->scenes[gltf_->defaultScene].nodes[path[1]];
         for(int i = 2; i < d; i++) idx = gltf_->nodes[idx].children[path[i]];
         return gltf_->nodes[idx].children.size();
-    }
-    if(d == 2 && path[0] == Meshes)
-    {
-        return gltf_->meshes[path[1]].primitives.size();
     }
     return 0;
 }

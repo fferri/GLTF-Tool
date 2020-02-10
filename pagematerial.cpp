@@ -16,7 +16,7 @@ PageMaterial::~PageMaterial()
     delete ui;
 }
 
-void PageMaterial::setData(const tinygltf::Model &model, int index, int subIndex)
+void PageMaterial::setData(const tinygltf::Model &model, int index)
 {
 
 }

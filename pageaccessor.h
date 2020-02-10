@@ -15,7 +15,7 @@ public:
     explicit PageAccessor(MainWindow *mainWindow);
     ~PageAccessor();
 
-    void setData(const tinygltf::Model &model, int index, int subIndex = -1);
+    void setData(const tinygltf::Model &model, int index);
 
 private:
     Ui::PageAccessor *ui;

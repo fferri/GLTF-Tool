@@ -16,7 +16,7 @@ PageAnimation::~PageAnimation()
     delete ui;
 }
 
-void PageAnimation::setData(const tinygltf::Model &model, int index, int subIndex)
+void PageAnimation::setData(const tinygltf::Model &model, int index)
 {
 
 }

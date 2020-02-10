@@ -18,7 +18,7 @@ PageBufferView::~PageBufferView()
     delete ui;
 }
 
-void PageBufferView::setData(const tinygltf::Model &model, int index, int subIndex)
+void PageBufferView::setData(const tinygltf::Model &model, int index)
 {
     const tinygltf::BufferView &bufferView = model.bufferViews[index];
     ui->index->setText(QString::number(index));

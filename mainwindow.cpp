@@ -79,7 +79,7 @@ void MainWindow::openFile(const QString &filePath)
     model_->setGLTF(&gltf);
     ui->treeView->setModel(model_);
     connect(ui->treeView->selectionModel(), &QItemSelectionModel::currentChanged, this, &MainWindow::onItemSelected);
-    selectItem(GLTFModel::None, -1, -1);
+    selectItem(GLTFModel::None, -1);
 }
 
 bool MainWindow::decodeLink(const QString &link, GLTFModel::Group &group, int &index)
@@ -110,7 +110,7 @@ void MainWindow::onItemSelected(const QModelIndex &modelIndex, const QModelIndex
     auto w = page.value(group);
     if(w && index >= 0)
     {
-        w->setData(gltf, index, -1);
+        w->setData(gltf, index);
         ui->stackedWidget->setCurrentWidget(w);
     }
     else
@@ -119,7 +119,7 @@ void MainWindow::onItemSelected(const QModelIndex &modelIndex, const QModelIndex
     }
 }
 
-void MainWindow::selectItem(GLTFModel::Group group, int index, int subIndex)
+void MainWindow::selectItem(GLTFModel::Group group, int index)
 {
     ui->treeView->setCurrentIndex(model_->encodeIndex(group, index));
 }
@@ -130,7 +130,7 @@ void MainWindow::selectItemByLink(const QString &link)
     int index;
     if(decodeLink(link, group, index))
     {
-        selectItem(group, index, -1);
+        selectItem(group, index);
     }
 }
 
@@ -154,7 +154,7 @@ void MainWindow::on_actionBack_triggered()
     {
         auto p = model_->decodeIndex(history.current());
         history.disable = true;
-        selectItem(p.first, p.second, -1);
+        selectItem(p.first, p.second);
         history.disable = false;
     }
 }
@@ -165,7 +165,7 @@ void MainWindow::on_actionForward_triggered()
     {
         auto p = model_->decodeIndex(history.current());
         history.disable = true;
-        selectItem(p.first, p.second, -1);
+        selectItem(p.first, p.second);
         history.disable = false;
     }
 }

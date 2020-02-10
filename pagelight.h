@@ -15,7 +15,7 @@ public:
     explicit PageLight(MainWindow *mainWindow);
     ~PageLight();
 
-    void setData(const tinygltf::Model &model, int index, int subIndex = -1);
+    void setData(const tinygltf::Model &model, int index);
 
 private:
     Ui::PageLight *ui;

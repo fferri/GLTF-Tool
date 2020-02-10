@@ -18,7 +18,7 @@ PageNode::~PageNode()
     delete ui;
 }
 
-void PageNode::setData(const tinygltf::Model &model, int index, int subIndex)
+void PageNode::setData(const tinygltf::Model &model, int index)
 {
     const tinygltf::Node &node = model.nodes[index];
     ui->index->setText(QString::number(index));

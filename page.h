@@ -17,7 +17,7 @@ public:
 
     MainWindow * mainWindow() const;
 
-    virtual void setData(const tinygltf::Model &model, int index, int subIndex = -1) = 0;
+    virtual void setData(const tinygltf::Model &model, int index) = 0;
 
 signals:
 

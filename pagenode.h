@@ -15,7 +15,7 @@ public:
     explicit PageNode(MainWindow *mainWindow);
     ~PageNode();
 
-    void setData(const tinygltf::Model &model, int index, int subIndex = -1);
+    void setData(const tinygltf::Model &model, int index);
 
 private:
     Ui::PageNode *ui;

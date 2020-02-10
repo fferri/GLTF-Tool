@@ -15,7 +15,7 @@ public:
     explicit PageCamera(MainWindow *mainWindow);
     ~PageCamera();
 
-    void setData(const tinygltf::Model &model, int index, int subIndex = -1);
+    void setData(const tinygltf::Model &model, int index);
 
 private:
     Ui::PageCamera *ui;

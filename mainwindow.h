@@ -32,7 +32,7 @@ private slots:
     void on_actionForward_triggered();
 
 public slots:
-    void selectItem(GLTFModel::Group group, int index, int subIndex = -1);
+    void selectItem(GLTFModel::Group group, int index);
     void selectItemByLink(const QString &link);
 
 private:
