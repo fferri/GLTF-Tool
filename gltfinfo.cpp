@@ -51,3 +51,18 @@ QMap<int, QString> GLTFInfo::compTypeStr {
     {TINYGLTF_COMPONENT_TYPE_DOUBLE, "double"},
 };
 
+QByteArray GLTFInfo::getBuffer(const tinygltf::Model *model, int i)
+{
+    const tinygltf::Buffer &buffer = model->buffers[i];
+    return QByteArray(reinterpret_cast<const char*>(buffer.data.data()), buffer.data.size());
+}
+
+QByteArray GLTFInfo::getBufferView(const tinygltf::Model *model, int i)
+{
+    const tinygltf::BufferView &bufferView = model->bufferViews[i];
+    auto buffer = getBuffer(model, bufferView.buffer);
+    QByteArray data;
+    for(int i = bufferView.byteOffset; i < bufferView.byteOffset + bufferView.byteLength; i++)
+        data.append(buffer.at(i));
+    return data;
+}

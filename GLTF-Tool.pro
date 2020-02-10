@@ -21,6 +21,21 @@ SOURCES += \
     gltfmodel.cpp \
     main.cpp \
     mainwindow.cpp \
+    page.cpp \
+    pageaccessor.cpp \
+    pageanimation.cpp \
+    pagebuffer.cpp \
+    pagebufferview.cpp \
+    pagecamera.cpp \
+    pageimage.cpp \
+    pagelight.cpp \
+    pagematerial.cpp \
+    pagemesh.cpp \
+    pagenode.cpp \
+    pagesampler.cpp \
+    pagescene.cpp \
+    pageskin.cpp \
+    pagetexture.cpp \
     qhexedit2/src/chunks.cpp \
     qhexedit2/src/commands.cpp \
     qhexedit2/src/qhexedit.cpp \
@@ -31,13 +46,42 @@ HEADERS += \
     gltfinfo.h \
     gltfmodel.h \
     mainwindow.h \
+    page.h \
+    pageaccessor.h \
+    pageanimation.h \
+    pagebuffer.h \
+    pagebufferview.h \
+    pagecamera.h \
+    pageimage.h \
+    pagelight.h \
+    pagematerial.h \
+    pagemesh.h \
+    pagenode.h \
+    pagesampler.h \
+    pagescene.h \
+    pageskin.h \
+    pagetexture.h \
     qhexedit2/src/chunks.h \
     qhexedit2/src/commands.h \
     qhexedit2/src/qhexedit.h \
     tinygltf/tiny_gltf.h
 
 FORMS += \
-    mainwindow.ui
+    mainwindow.ui \
+    pageaccessor.ui \
+    pageanimation.ui \
+    pagebuffer.ui \
+    pagebufferview.ui \
+    pagecamera.ui \
+    pageimage.ui \
+    pagelight.ui \
+    pagematerial.ui \
+    pagemesh.ui \
+    pagenode.ui \
+    pagesampler.ui \
+    pagescene.ui \
+    pageskin.ui \
+    pagetexture.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

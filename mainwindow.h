@@ -8,6 +8,8 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
+class Page;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -16,31 +18,22 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    GLTFModel * model() { return model_; }
+
+    static bool decodeLink(const QString &link, GLTFModel::Group &group, int &index);
+    static QString link(GLTFModel::Group group, int index);
+
 private slots:
     void onItemSelected(const QModelIndex &index, const QModelIndex &prev);
-    void selectItem(GLTFModel::Group group, int index, bool syncTree = true);
-    void selectItemByLink(const QString &link);
 
 public slots:
-    void showAccessor(int index);
-    void showAnimation(int index);
-    void showBuffer(int index);
-    void showBufferView(int index);
-    void showMaterial(int index);
-    void showMesh(int index);
-    void showNode(int index);
-    void showTexture(int index);
-    void showImage(int index);
-    void showSkin(int index);
-    void showSampler(int index);
-    void showCamera(int index);
-    void showScene(int index);
-    void showLight(int index);
+    void selectItem(GLTFModel::Group group, int index, int subIndex = -1, bool syncTree = true);
+    void selectItemByLink(const QString &link);
 
 private:
     Ui::MainWindow *ui;
-    GLTFModel *model;
-    QMap<GLTFModel::Group, void (MainWindow::*)(int)> showFunc;
+    GLTFModel *model_;
+    QMap<GLTFModel::Group, Page*> page;
 };
 
 #endif // MAINWINDOW_H
