@@ -16,12 +16,15 @@
 #include "ui_mainwindow.h"
 #include "gltfinfo.h"
 
+#include <QFileDialog>
+
 tinygltf::Model gltf;
 tinygltf::TinyGLTF loader;
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::MainWindow)
+    , model_(nullptr)
     , page({
                 {GLTFModel::Accessors, new PageAccessor(this)},
                 {GLTFModel::Animations, new PageAnimation(this)},
@@ -39,21 +42,44 @@ MainWindow::MainWindow(QWidget *parent)
                 {GLTFModel::Lights, new PageLight(this)},
            })
 {
-    ui->setupUi(this);    
+    ui->setupUi(this);
+    ui->actionBack->setIcon(style()->standardIcon(QStyle::SP_ArrowBack));
+    ui->actionForward->setIcon(style()->standardIcon(QStyle::SP_ArrowForward));
+    ui->actionOpen->setIcon(style()->standardIcon(QStyle::SP_DialogOpenButton));
     for(auto p : page.values())
         ui->stackedWidget->addWidget(p);
+    history.mainWindow = this;
+    history.clear();
 
-    loader.LoadASCIIFromFile(&gltf, nullptr, nullptr, "/Users/me/Desktop/youBotAndHanoiTower.gltf");
-
-    model_ = new GLTFModel(this);
-    model_->setGLTF(&gltf);
-    ui->treeView->setModel(model_);
-    connect(ui->treeView->selectionModel(), &QItemSelectionModel::currentChanged, this, &MainWindow::onItemSelected);
+    QFile f("/Users/me/Desktop/youBotAndHanoiTower.gltf");
+    if(f.exists()) openFile(f.fileName());
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
+}
+
+void MainWindow::openFile(const QString &filePath)
+{
+    if(filePath.endsWith(".gltf"))
+        loader.LoadASCIIFromFile(&gltf, nullptr, nullptr, filePath.toStdString());
+    else if(filePath.endsWith(".glb"))
+        loader.LoadBinaryFromFile(&gltf, nullptr, nullptr, filePath.toStdString());
+    else return;
+
+    if(model_)
+    {
+        model_->deleteLater();
+        model_ = nullptr;
+    }
+
+    history.clear();
+    model_= new GLTFModel(this);
+    model_->setGLTF(&gltf);
+    ui->treeView->setModel(model_);
+    connect(ui->treeView->selectionModel(), &QItemSelectionModel::currentChanged, this, &MainWindow::onItemSelected);
+    selectItem(GLTFModel::None, -1, -1);
 }
 
 bool MainWindow::decodeLink(const QString &link, GLTFModel::Group &group, int &index)
@@ -74,23 +100,17 @@ QString MainWindow::link(GLTFModel::Group group, int index)
     return QString("<a href='#%1=%2'>%2</a>").arg(groupMeta.valueToKey(group)).arg(index);
 }
 
-void MainWindow::onItemSelected(const QModelIndex &index, const QModelIndex &prev)
+void MainWindow::onItemSelected(const QModelIndex &modelIndex, const QModelIndex &prevModelIndex)
 {
-    auto p = model_->decodeIndex(index);
-    selectItem(p.first, p.second, false);
-}
+    auto p = model_->decodeIndex(modelIndex);
+    GLTFModel::Group group = p.first;
+    int index = p.second;
 
-void MainWindow::selectItem(GLTFModel::Group group, int index, int subIndex, bool syncTree)
-{
+    history.push(modelIndex);
     auto w = page.value(group);
     if(w && index >= 0)
     {
-        if(syncTree)
-        {
-            QModelIndex treeIndex = model_->encodeIndex(group, index);
-            ui->treeView->setCurrentIndex(treeIndex);
-        }
-        w->setData(gltf, index, subIndex);
+        w->setData(gltf, index, -1);
         ui->stackedWidget->setCurrentWidget(w);
     }
     else
@@ -99,10 +119,108 @@ void MainWindow::selectItem(GLTFModel::Group group, int index, int subIndex, boo
     }
 }
 
+void MainWindow::selectItem(GLTFModel::Group group, int index, int subIndex)
+{
+    ui->treeView->setCurrentIndex(model_->encodeIndex(group, index));
+}
+
 void MainWindow::selectItemByLink(const QString &link)
 {
     GLTFModel::Group group;
     int index;
     if(decodeLink(link, group, index))
-        selectItem(group, index);
+    {
+        selectItem(group, index, -1);
+    }
+}
+
+void MainWindow::on_actionOpen_triggered()
+{
+    QFileDialog dialog(this);
+    dialog.setFileMode(QFileDialog::ExistingFile);
+    dialog.setNameFilter(tr("GLTF files (*.gltf *.glb)"));
+    dialog.setViewMode(QFileDialog::Detail);
+    QStringList fileNames;
+    if(dialog.exec())
+    {
+        fileNames = dialog.selectedFiles();
+        openFile(fileNames[0]);
+    }
+}
+
+void MainWindow::on_actionBack_triggered()
+{
+    if(history.back())
+    {
+        auto p = model_->decodeIndex(history.current());
+        history.disable = true;
+        selectItem(p.first, p.second, -1);
+        history.disable = false;
+    }
+}
+
+void MainWindow::on_actionForward_triggered()
+{
+    if(history.forward())
+    {
+        auto p = model_->decodeIndex(history.current());
+        history.disable = true;
+        selectItem(p.first, p.second, -1);
+        history.disable = false;
+    }
+}
+
+bool MainWindow::History::back()
+{
+    if(index.empty())
+    {
+        position = -1;
+        return false;
+    }
+    int newPos = qMax(0, qMin(index.size() - 1, position - 1));
+    bool changed = newPos != position;
+    position = newPos;
+    updateActions();
+    return changed;
+}
+
+bool MainWindow::History::forward()
+{
+    if(index.empty())
+    {
+        position = -1;
+        return false;
+    }
+    int newPos = qMax(0, qMin(index.size() - 1, position + 1));
+    bool changed = newPos != position;
+    position = newPos;
+    updateActions();
+    return changed;
+}
+
+void MainWindow::History::push(QModelIndex i)
+{
+    if(disable) return;
+    index.append(i);
+    position = index.size() - 1;
+    updateActions();
+}
+
+void MainWindow::History::updateActions()
+{
+    mainWindow->ui->actionBack->setEnabled(position > 0 && index.size() > 1);
+    mainWindow->ui->actionForward->setEnabled(position < index.size() - 1 && index.size() > 1);
+}
+
+void MainWindow::History::clear()
+{
+    index.clear();
+    position = -1;
+    updateActions();
+}
+
+QModelIndex MainWindow::History::current()
+{
+    if(index.empty() || position < 0 || position >= index.size()) return {};
+    return index.at(position);
 }
