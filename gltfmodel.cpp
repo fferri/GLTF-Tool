@@ -87,7 +87,7 @@ QVariant GLTFModel::data(const QModelIndex &index, int role) const
     {
         int idx = gltf_->scenes[gltf_->defaultScene].nodes[path[1]];
         for(int i = 2; i < d; i++) idx = gltf_->nodes[idx].children[path[i]];
-        return QString::fromStdString(gltf_->nodes[idx].name);
+        return QString("%1: %2").arg(idx).arg(QString::fromStdString(gltf_->nodes[idx].name));
     }
 
     return {};
