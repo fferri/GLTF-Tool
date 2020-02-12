@@ -17,6 +17,7 @@
 #include "gltfinfo.h"
 
 #include <QFileDialog>
+#include <QMessageBox>
 
 tinygltf::Model gltf;
 tinygltf::TinyGLTF loader;
@@ -62,11 +63,34 @@ MainWindow::~MainWindow()
 
 void MainWindow::openFile(const QString &filePath)
 {
+    bool ret;
+    std::string err, warn;
     if(filePath.endsWith(".gltf"))
-        loader.LoadASCIIFromFile(&gltf, nullptr, nullptr, filePath.toStdString());
+        ret = loader.LoadASCIIFromFile(&gltf, &err, &warn, filePath.toStdString());
     else if(filePath.endsWith(".glb"))
-        loader.LoadBinaryFromFile(&gltf, nullptr, nullptr, filePath.toStdString());
+        ret = loader.LoadBinaryFromFile(&gltf, &err, &warn, filePath.toStdString());
     else return;
+
+    if(!ret)
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Load failed: " + filePath);
+        msgBox.setInformativeText(QString::fromStdString(err));
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.setIcon(QMessageBox::Critical);
+        msgBox.exec();
+        return;
+    }
+
+    if(!warn.empty())
+    {
+        QMessageBox msgBox;
+        msgBox.setText("Load warning: " + filePath);
+        msgBox.setInformativeText(QString::fromStdString(err));
+        msgBox.setStandardButtons(QMessageBox::Ok);
+        msgBox.setIcon(QMessageBox::Warning);
+        msgBox.exec();
+    }
 
     if(model_)
     {
