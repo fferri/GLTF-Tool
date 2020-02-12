@@ -53,7 +53,7 @@ private:
         QVector<QModelIndex> index;
         int position;
     } history;
-    friend class History;
+    friend History;
 };
 
 #endif // MAINWINDOW_H
