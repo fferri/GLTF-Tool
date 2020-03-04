@@ -63,6 +63,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::openFile(const QString &filePath)
 {
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+
     bool ret;
     std::string err, warn;
     if(filePath.endsWith(".gltf"))
@@ -73,6 +75,7 @@ void MainWindow::openFile(const QString &filePath)
 
     if(!ret)
     {
+        QApplication::restoreOverrideCursor();
         QMessageBox msgBox;
         msgBox.setText("Load failed: " + filePath);
         msgBox.setInformativeText(QString::fromStdString(err));
@@ -81,6 +84,9 @@ void MainWindow::openFile(const QString &filePath)
         msgBox.exec();
         return;
     }
+
+    setWindowTitle(QString("%1 - GLTF-Tool").arg(QFileInfo(filePath).fileName()));
+    setWindowFilePath(filePath);
 
     if(!warn.empty())
     {
@@ -104,6 +110,8 @@ void MainWindow::openFile(const QString &filePath)
     ui->treeView->setModel(model_);
     connect(ui->treeView->selectionModel(), &QItemSelectionModel::currentChanged, this, &MainWindow::onItemSelected);
     selectItem(GLTFModel::None, -1);
+
+    QApplication::restoreOverrideCursor();
 }
 
 bool MainWindow::decodeLink(const QString &link, GLTFModel::Group &group, int &index)
