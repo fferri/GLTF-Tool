@@ -1,3 +1,6 @@
 [submodule "tinygltf"]
 	path = tinygltf
 	url = https://github.com/syoyo/tinygltf
+[submodule "qhexedit2"]
+	path = qhexedit2
+	url = https://github.com/fferri/qhexedit2
