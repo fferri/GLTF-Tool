@@ -25,6 +25,7 @@ PageAnimation::PageAnimation(MainWindow *mainWindow)
     ui->setupUi(this);
 
     ui->tracks->setColumnCount(9);
+    ui->tracks->setSelectionMode(QAbstractItemView::NoSelection);
     ui->tracks->setHorizontalHeaderLabels(QStringList()
         << "#" << "Node" << "Path" << "Sampler" << "Interpolation"
         << "Input" << "Output" << "Keys" << "Time range");
@@ -94,4 +95,6 @@ void PageAnimation::setData(const tinygltf::Model &model, int index)
         table->setCellWidget(row, 5, makeLinkLabel(table, mainWindow(), GLTFModel::Accessors, track.inputAccessor));
         table->setCellWidget(row, 6, makeLinkLabel(table, mainWindow(), GLTFModel::Accessors, track.outputAccessor));
     }
+    table->clearSelection();
+    table->setCurrentCell(-1, -1);
 }
