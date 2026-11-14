@@ -184,10 +184,22 @@ set(APP_FORMS
     pagetexture.ui
 )
 
+set(APP_RESOURCES
+    resources.qrc
+)
+
+set(APP_ICON_MACOSX)
+if(APPLE)
+    set(APP_ICON_MACOSX "${CMAKE_CURRENT_SOURCE_DIR}/gltftool.icns")
+    set_source_files_properties("${APP_ICON_MACOSX}" PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+endif()
+
 add_executable(GLTF-Tool MACOSX_BUNDLE
     ${APP_SOURCES}
     ${APP_HEADERS}
     ${APP_FORMS}
+    ${APP_RESOURCES}
+    ${APP_ICON_MACOSX}
 )
 
 target_include_directories(GLTF-Tool PRIVATE
@@ -211,6 +223,12 @@ set_target_properties(GLTF-Tool PROPERTIES
     MACOSX_BUNDLE_BUNDLE_VERSION "${PROJECT_VERSION}"
     MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
 )
+
+if(APPLE)
+    set_target_properties(GLTF-Tool PROPERTIES
+        MACOSX_BUNDLE_ICON_FILE "gltftool.icns"
+    )
+endif()
 
 # Both dependencies must be fetched before compiling sources that include them.
 add_dependencies(GLTF-Tool tinygltf_dep qhexedit2_dep)

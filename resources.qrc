@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>gltftool.png</file>
+    </qresource>
+</RCC>
