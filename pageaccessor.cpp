@@ -20,34 +20,34 @@ PageAccessor::~PageAccessor()
 
 void PageAccessor::setData(const tinygltf::Model &model, int index)
 {
+    if(index < 0 || index >= (int)model.accessors.size()) return;
+
     const tinygltf::Accessor &accessor = model.accessors[index];
     ui->index->setText(QString::number(index));
     ui->name->setText(QString::fromStdString(accessor.name));
     ui->type->setText(GLTFInfo::typeStr[accessor.type]);
     ui->componentType->setText(GLTFInfo::compTypeStr[accessor.componentType]);
     ui->bufferView->setText(mainWindow()->link(GLTFModel::BufferViews, accessor.bufferView));
-    QByteArray data = GLTFInfo::getBufferView(&model, accessor.bufferView);
-    ui->data->setColumnCount(tinygltf::GetNumComponentsInType(accessor.type));
-    ui->data->setHorizontalHeaderLabels(GLTFInfo::typeFields[accessor.type]);
-    int recordSize = tinygltf::GetComponentSizeInBytes(accessor.componentType) * tinygltf::GetNumComponentsInType(accessor.type);
-    for(int i = accessor.byteOffset, row = 0; i < data.size(); i += accessor.byteOffset + recordSize, row++)
+
+    const int columns = GLTFInfo::componentCount(accessor.type);
+    QVector<QStringList> rows = GLTFInfo::accessorData(&model, index);
+
+    ui->data->setRowCount(0);
+    ui->data->clearContents();
+    ui->data->setColumnCount(columns);
+    ui->data->setHorizontalHeaderLabels(GLTFInfo::typeFields.value(accessor.type));
+    ui->data->setRowCount(rows.size());
+
+    for(int row = 0; row < rows.size(); row++)
     {
-        int n = tinygltf::GetNumComponentsInType(accessor.type);
-        auto cells = GLTFInfo::cells[accessor.componentType](data.data() + i, n);
-        ui->data->setRowCount(row + 1);
-        for(int col = 0; col < n; col++)
-        {
-            QTableWidgetItem *item = ui->data->item(row, col);
-            if(!item)
-            {
-                item = new QTableWidgetItem;
-                ui->data->setItem(row, col, item);
-            }
-            item->setText(cells[col]);
-        }
+        const QStringList &values = rows[row];
+        for(int col = 0; col < values.size(); col++)
+            ui->data->setItem(row, col, new QTableWidgetItem(values[col]));
     }
+
     QStringList h;
-    for(int i = 0; i < ui->data->rowCount(); i++)
+    h.reserve(rows.size());
+    for(int i = 0; i < rows.size(); i++)
         h << QString::number(i);
     ui->data->setVerticalHeaderLabels(h);
 }

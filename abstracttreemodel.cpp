@@ -7,7 +7,13 @@ AbstractTreeModel::AbstractTreeModel(QObject *parent)
 
 AbstractTreeModel::~AbstractTreeModel()
 {
-    for(auto v : indexData_) delete v;
+    clearIndexCache();
+}
+
+void AbstractTreeModel::clearIndexCache()
+{
+    qDeleteAll(indexData_);
+    indexData_.clear();
 }
 
 QModelIndex AbstractTreeModel::index(int row, int column, const QModelIndex &parent) const
@@ -22,7 +28,8 @@ QModelIndex AbstractTreeModel::index(int row, int column, const QModelIndex &par
         if(parent.isValid())
         {
             data->parents.append(parent);
-            data->parents.append(indexData(parent)->parents);
+            if(IndexData *parentData = indexData(parent))
+                data->parents.append(parentData->parents);
         }
     }
     else

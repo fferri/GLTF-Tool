@@ -51,9 +51,6 @@ MainWindow::MainWindow(QWidget *parent)
         ui->stackedWidget->addWidget(p);
     history.mainWindow = this;
     history.clear();
-
-    QFile f("/Users/me/Desktop/youBotAndHanoiTower.gltf");
-    if(f.exists()) openFile(f.fileName());
 }
 
 MainWindow::~MainWindow()
@@ -71,7 +68,11 @@ void MainWindow::openFile(const QString &filePath)
         ret = loader.LoadASCIIFromFile(&gltf, &err, &warn, filePath.toStdString());
     else if(filePath.endsWith(".glb"))
         ret = loader.LoadBinaryFromFile(&gltf, &err, &warn, filePath.toStdString());
-    else return;
+    else
+    {
+        QApplication::restoreOverrideCursor();
+        return;
+    }
 
     if(!ret)
     {
@@ -92,7 +93,7 @@ void MainWindow::openFile(const QString &filePath)
     {
         QMessageBox msgBox;
         msgBox.setText("Load warning: " + filePath);
-        msgBox.setInformativeText(QString::fromStdString(err));
+        msgBox.setInformativeText(QString::fromStdString(warn));
         msgBox.setStandardButtons(QMessageBox::Ok);
         msgBox.setIcon(QMessageBox::Warning);
         msgBox.exec();
@@ -134,6 +135,13 @@ QString MainWindow::link(GLTFModel::Group group, int index)
 
 void MainWindow::onItemSelected(const QModelIndex &modelIndex, const QModelIndex &prevModelIndex)
 {
+    Q_UNUSED(prevModelIndex)
+    if(!model_)
+    {
+        ui->stackedWidget->setCurrentWidget(ui->defaultPage);
+        return;
+    }
+
     auto p = model_->decodeIndex(modelIndex);
     GLTFModel::Group group = p.first;
     int index = p.second;
@@ -153,7 +161,19 @@ void MainWindow::onItemSelected(const QModelIndex &modelIndex, const QModelIndex
 
 void MainWindow::selectItem(GLTFModel::Group group, int index)
 {
-    ui->treeView->setCurrentIndex(model_->encodeIndex(group, index));
+    QModelIndex modelIndex = model_->encodeIndex(group, index);
+    if(!modelIndex.isValid())
+    {
+        ui->treeView->setCurrentIndex(QModelIndex());
+        return;
+    }
+
+    // Make sure the item is visible, expanding all of its ancestors.
+    for(QModelIndex parent = modelIndex.parent(); parent.isValid(); parent = parent.parent())
+        ui->treeView->expand(parent);
+
+    ui->treeView->setCurrentIndex(modelIndex);
+    ui->treeView->scrollTo(modelIndex);
 }
 
 void MainWindow::selectItemByLink(const QString &link)

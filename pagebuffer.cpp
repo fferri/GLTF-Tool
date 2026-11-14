@@ -19,6 +19,8 @@ PageBuffer::~PageBuffer()
 
 void PageBuffer::setData(const tinygltf::Model &model, int index)
 {
+    if(index < 0 || index >= (int)model.buffers.size()) return;
+
     const tinygltf::Buffer &buffer = model.buffers[index];
     ui->index->setText(QString::number(index));
     ui->name->setText(QString::fromStdString(buffer.name));

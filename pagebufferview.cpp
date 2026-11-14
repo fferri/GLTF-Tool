@@ -20,6 +20,8 @@ PageBufferView::~PageBufferView()
 
 void PageBufferView::setData(const tinygltf::Model &model, int index)
 {
+    if(index < 0 || index >= (int)model.bufferViews.size()) return;
+
     const tinygltf::BufferView &bufferView = model.bufferViews[index];
     ui->index->setText(QString::number(index));
     ui->name->setText(QString::fromStdString(bufferView.name));

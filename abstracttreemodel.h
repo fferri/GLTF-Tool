@@ -25,6 +25,9 @@ public:
     QString indexString(const QModelIndex &index) const;
     QString indexString(int row, int column, const QModelIndex &parent) const;
 
+protected:
+    void clearIndexCache();
+
 private:
     QMap<QString, IndexData*> indexData_;
 };

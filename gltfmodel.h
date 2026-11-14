@@ -9,12 +9,6 @@ class GLTFModel : public AbstractTreeModel
 {
     Q_OBJECT
 
-private:
-    struct IndexData
-    {
-        QVector<QModelIndex> parents;
-    };
-
 public:
     enum Group
     {
@@ -51,8 +45,11 @@ public:
     QModelIndex encodeIndex(Group group, int idx) const;
 
 private:
-    tinygltf::Model *gltf_;
+    bool nodeIndexAtPath(const QList<int> &path, int &idx) const;
+
+    tinygltf::Model *gltf_ = nullptr;
     QMap<int, int> nodeParent_;
+    QList<int> sceneRoots_;
     QMetaEnum groupMeta{QMetaEnum::fromType<Group>()};
 };
 
