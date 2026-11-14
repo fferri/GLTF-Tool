@@ -93,6 +93,7 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionOpen"/>
    <addaction name="actionBack"/>
    <addaction name="actionForward"/>
   </widget>

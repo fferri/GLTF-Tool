@@ -16,8 +16,14 @@
 #include "ui_mainwindow.h"
 #include "gltfinfo.h"
 
+#include <QAction>
+#include <QDir>
 #include <QFileDialog>
+#include <QMenu>
 #include <QMessageBox>
+#include <QSettings>
+
+#include <utility>
 
 tinygltf::Model gltf;
 tinygltf::TinyGLTF loader;
@@ -47,10 +53,18 @@ MainWindow::MainWindow(QWidget *parent)
     ui->actionBack->setIcon(style()->standardIcon(QStyle::SP_ArrowBack));
     ui->actionForward->setIcon(style()->standardIcon(QStyle::SP_ArrowForward));
     ui->actionOpen->setIcon(style()->standardIcon(QStyle::SP_DialogOpenButton));
+    ui->actionOpen->setShortcut(QKeySequence::Open);
+    ui->actionOpen->setToolTip(tr("Open a glTF file"));
+    ui->actionOpen->setStatusTip(tr("Open a glTF file"));
+    ui->toolBar->insertSeparator(ui->actionBack);
     for(auto p : page.values())
         ui->stackedWidget->addWidget(p);
     history.mainWindow = this;
     history.clear();
+
+    setupRecentFilesMenu();
+    loadRecentFiles();
+    updateRecentFilesMenu();
 }
 
 MainWindow::~MainWindow()
@@ -64,10 +78,11 @@ void MainWindow::openFile(const QString &filePath)
 
     bool ret;
     std::string err, warn;
+    tinygltf::Model loadedModel;
     if(filePath.endsWith(".gltf"))
-        ret = loader.LoadASCIIFromFile(&gltf, &err, &warn, filePath.toStdString());
+        ret = loader.LoadASCIIFromFile(&loadedModel, &err, &warn, filePath.toStdString());
     else if(filePath.endsWith(".glb"))
-        ret = loader.LoadBinaryFromFile(&gltf, &err, &warn, filePath.toStdString());
+        ret = loader.LoadBinaryFromFile(&loadedModel, &err, &warn, filePath.toStdString());
     else
     {
         QApplication::restoreOverrideCursor();
@@ -88,6 +103,7 @@ void MainWindow::openFile(const QString &filePath)
 
     setWindowTitle(QString("%1 - GLTF-Tool").arg(QFileInfo(filePath).fileName()));
     setWindowFilePath(filePath);
+    addRecentFile(filePath);
 
     if(!warn.empty())
     {
@@ -105,6 +121,8 @@ void MainWindow::openFile(const QString &filePath)
         model_ = nullptr;
     }
 
+    gltf = std::move(loadedModel);
+
     history.clear();
     model_= new GLTFModel(this);
     model_->setGLTF(&gltf);
@@ -113,6 +131,122 @@ void MainWindow::openFile(const QString &filePath)
     selectItem(GLTFModel::None, -1);
 
     QApplication::restoreOverrideCursor();
+}
+
+void MainWindow::setupRecentFilesMenu()
+{
+    ui->menuFile->addSeparator();
+    recentFilesMenu_ = ui->menuFile->addMenu(tr("Open Recent"));
+    recentFilesMenu_->setObjectName("menuRecentFiles");
+    recentFilesMenu_->setToolTipsVisible(true);
+
+    recentFileActions_.reserve(MaxRecentFiles);
+    for(int i = 0; i < MaxRecentFiles; i++)
+    {
+        QAction *action = recentFilesMenu_->addAction(QString());
+        action->setObjectName(QString("recentFileAction%1").arg(i));
+        action->setVisible(false);
+        connect(action, &QAction::triggered, this, &MainWindow::openRecentFile);
+        recentFileActions_.append(action);
+    }
+
+    noRecentFilesAction_ = recentFilesMenu_->addAction(tr("(No recent files)"));
+    noRecentFilesAction_->setObjectName("actionNoRecentFiles");
+    noRecentFilesAction_->setEnabled(false);
+
+    recentFilesMenu_->addSeparator();
+    clearRecentFilesAction_ = recentFilesMenu_->addAction(tr("Clear Recent Files"));
+    clearRecentFilesAction_->setObjectName("actionClearRecentFiles");
+    connect(clearRecentFilesAction_, &QAction::triggered, this, &MainWindow::clearRecentFiles);
+}
+
+void MainWindow::loadRecentFiles()
+{
+    QSettings settings;
+    recentFiles_ = settings.value("recentFiles").toStringList();
+
+    QStringList unique;
+    for(const QString &path : recentFiles_)
+    {
+        if(path.isEmpty() || unique.contains(path)) continue;
+        unique.append(path);
+    }
+    recentFiles_ = unique;
+
+    while(recentFiles_.size() > MaxRecentFiles) recentFiles_.removeLast();
+}
+
+void MainWindow::saveRecentFiles()
+{
+    QSettings settings;
+    settings.setValue("recentFiles", recentFiles_);
+}
+
+void MainWindow::addRecentFile(const QString &filePath)
+{
+    if(filePath.isEmpty()) return;
+
+    const QString path = QDir::cleanPath(QFileInfo(filePath).absoluteFilePath());
+    recentFiles_.removeAll(path);
+    recentFiles_.prepend(path);
+    while(recentFiles_.size() > MaxRecentFiles) recentFiles_.removeLast();
+
+    saveRecentFiles();
+    updateRecentFilesMenu();
+}
+
+void MainWindow::updateRecentFilesMenu()
+{
+    for(int i = 0; i < recentFileActions_.size(); i++)
+    {
+        QAction *action = recentFileActions_[i];
+        if(i < recentFiles_.size())
+        {
+            const QString &path = recentFiles_[i];
+            QString label = QDir::toNativeSeparators(path);
+            label.replace("&", "&&");
+            action->setText(label);
+            action->setToolTip(QDir::toNativeSeparators(path));
+            action->setData(path);
+            action->setVisible(true);
+        }
+        else
+        {
+            action->setVisible(false);
+            action->setData(QVariant());
+        }
+    }
+
+    noRecentFilesAction_->setVisible(recentFiles_.isEmpty());
+    clearRecentFilesAction_->setEnabled(!recentFiles_.isEmpty());
+}
+
+void MainWindow::openRecentFile()
+{
+    QAction *action = qobject_cast<QAction*>(sender());
+    if(!action) return;
+
+    const QString path = action->data().toString();
+    if(path.isEmpty()) return;
+
+    if(!QFileInfo::exists(path))
+    {
+        QMessageBox::warning(this, tr("File not found"),
+                             tr("The file no longer exists:\n%1").arg(QDir::toNativeSeparators(path)));
+        recentFiles_.removeAll(path);
+        saveRecentFiles();
+        updateRecentFilesMenu();
+        return;
+    }
+
+    openFile(path);
+}
+
+void MainWindow::clearRecentFiles()
+{
+    recentFiles_.clear();
+    saveRecentFiles();
+    updateRecentFilesMenu();
 }
 
 bool MainWindow::decodeLink(const QString &link, GLTFModel::Group &group, int &index)

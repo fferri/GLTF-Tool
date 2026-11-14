@@ -9,6 +9,8 @@ namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
 class Page;
+class QAction;
+class QMenu;
 
 class MainWindow : public QMainWindow
 {
@@ -30,15 +32,30 @@ private slots:
     void on_actionOpen_triggered();
     void on_actionBack_triggered();
     void on_actionForward_triggered();
+    void openRecentFile();
+    void clearRecentFiles();
 
 public slots:
     void selectItem(GLTFModel::Group group, int index);
     void selectItemByLink(const QString &link);
 
 private:
+    void setupRecentFilesMenu();
+    void loadRecentFiles();
+    void saveRecentFiles();
+    void addRecentFile(const QString &filePath);
+    void updateRecentFilesMenu();
+
+    static const int MaxRecentFiles = 10;
+
     Ui::MainWindow *ui;
     GLTFModel *model_;
     QMap<GLTFModel::Group, Page*> page;
+    QStringList recentFiles_;
+    QVector<QAction*> recentFileActions_;
+    QMenu *recentFilesMenu_ = nullptr;
+    QAction *noRecentFilesAction_ = nullptr;
+    QAction *clearRecentFilesAction_ = nullptr;
     struct History
     {
         MainWindow *mainWindow;
