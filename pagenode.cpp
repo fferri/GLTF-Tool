@@ -1,7 +1,7 @@
 #include "pagenode.h"
 #include "mainwindow.h"
 #include "ui_pagenode.h"
-#include "tinygltf/tiny_gltf.h"
+#include "tiny_gltf.h"
 #include "gltfinfo.h"
 
 PageNode::PageNode(MainWindow *mainWindow)

@@ -1,5 +1,5 @@
 #include "gltfinfo.h"
-#include "tinygltf/tiny_gltf.h"
+#include "tiny_gltf.h"
 
 #include <climits>
 

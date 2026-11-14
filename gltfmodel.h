@@ -3,7 +3,7 @@
 
 #include <QtCore>
 #include "abstracttreemodel.h"
-#include "tinygltf/tiny_gltf.h"
+#include "tiny_gltf.h"
 
 class GLTFModel : public AbstractTreeModel
 {

@@ -1,7 +1,7 @@
 #include "pageanimation.h"
 #include "mainwindow.h"
 #include "ui_pageanimation.h"
-#include "tinygltf/tiny_gltf.h"
+#include "tiny_gltf.h"
 #include "gltfinfo.h"
 
 #include <QHeaderView>

@@ -1,7 +1,7 @@
 #include "pageaccessor.h"
 #include "mainwindow.h"
 #include "ui_pageaccessor.h"
-#include "tinygltf/tiny_gltf.h"
+#include "tiny_gltf.h"
 #include "gltfinfo.h"
 
 PageAccessor::PageAccessor(MainWindow *mainWindow)

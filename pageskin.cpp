@@ -1,7 +1,7 @@
 #include "pageskin.h"
 #include "mainwindow.h"
 #include "ui_pageskin.h"
-#include "tinygltf/tiny_gltf.h"
+#include "tiny_gltf.h"
 #include "gltfinfo.h"
 
 PageSkin::PageSkin(MainWindow *mainWindow)

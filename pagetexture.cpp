@@ -1,7 +1,7 @@
 #include "pagetexture.h"
 #include "mainwindow.h"
 #include "ui_pagetexture.h"
-#include "tinygltf/tiny_gltf.h"
+#include "tiny_gltf.h"
 #include "gltfinfo.h"
 
 PageTexture::PageTexture(MainWindow *mainWindow)

@@ -1,7 +1,7 @@
 #include "pagebuffer.h"
 #include "mainwindow.h"
 #include "ui_pagebuffer.h"
-#include "tinygltf/tiny_gltf.h"
+#include "tiny_gltf.h"
 #include "gltfinfo.h"
 
 PageBuffer::PageBuffer(MainWindow *mainWindow)

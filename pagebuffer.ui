@@ -73,7 +73,7 @@
   <customwidget>
    <class>QHexEdit</class>
    <extends>QWidget</extends>
-   <header>qhexedit2/src/qhexedit.h</header>
+   <header>qhexedit.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

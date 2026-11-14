@@ -1,7 +1,7 @@
 #include "pagemesh.h"
 #include "mainwindow.h"
 #include "ui_pagemesh.h"
-#include "tinygltf/tiny_gltf.h"
+#include "tiny_gltf.h"
 #include "gltfinfo.h"
 
 PageMesh::PageMesh(MainWindow *mainWindow)
